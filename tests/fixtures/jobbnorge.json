@@ -1,0 +1,37 @@
+{
+  "jobs": [
+    {
+      "id": 307772,
+      "jobScope": "Heltid",
+      "jobDuration": "Fast",
+      "deadline": "18.10.2026",
+      "employer": "Høgskolen i Østfold",
+      "employerID": 1562,
+      "regardDepartmentAsEmployer": false,
+      "department": "Organisasjonsavdelingen",
+      "departmentID": 15276,
+      "title": "Ledig stilling som kommunikasjonssjef",
+      "summary": "Kommunikasjon som synliggjør høgskolens samfunnsrolle!",
+      "logo": "https://www.jobbnorge.no/logos/1562/9dd291e4-1ba3-4b3a-9a3f-89b4feca1fba.png",
+      "link": "https://www.jobbnorge.no/ledige-stillinger/stilling/307772",
+      "promoted": false,
+      "positionCount": 1,
+      "locations": [
+        {
+          "address": "B R A veien 4",
+          "area": "Halden",
+          "municipality": "Halden",
+          "county": "Østfold",
+          "isDomestic": true,
+          "isPrimary": true,
+          "zipCode": "1783"
+        }
+      ],
+      "publicationDate": "18.09.2026",
+      "jobType": {
+        "id": 132,
+        "name": "AD2 -  Mellomlederstillinger"
+      }
+    }
+  ]
+}

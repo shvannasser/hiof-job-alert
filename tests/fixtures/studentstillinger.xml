@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:v="vrtx">
+  <title>Ledige studentstillinger på HiØ – Høgskolen i Østfold</title>
+  <id>tag:www.hiof.no,2023-01-11:/om/jobb/jobber-for-studenter/</id>
+  <author><name>www.hiof.no</name></author>
+  <updated>2026-01-06T13:23:00.698Z</updated>
+  <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/" rel="alternate" type="text/html" />
+  <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/?vrtx=feed" rel="self" type="application/atom+xml" />
+  <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/?vrtx=feed" rel="first" type="application/atom+xml" />
+  <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/?vrtx=feed" rel="last" type="application/atom+xml" />
+  <v:feed-type>article-listing</v:feed-type>
+  <entry>
+    <id>tag:www.hiof.no,2026-10-06:/om/jobb/jobber-for-studenter/medlemmer-til-fadderstyret</id>
+    <category term="type:structured-article" />
+    <title>Bli med i Fadderstyret 2027</title>
+    <published>2026-10-06T09:29:40.412Z</published>
+    <updated>2026-10-07T13:54:57.200Z</updated>
+    <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/medlemmer-til-fadderstyret" rel="alternate" type="text/html" />
+    <summary type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml"><img src="//www.hiof.no/om/jobb/jobber-for-studenter/bli-fadder.jpg?alt=listing" alt="bli-fadder"/><p>HiØ søker åtte studenter til Fadderstyret 2027.</p><p>Vil du være med på å gi nye studenter den beste starten på studietiden? Som medlem av Fadderstyret 2027 får du en viktig rolle i planleggingen og gjennomføringen av fadderuka. Sammen skaper vi en inkluderende, trygg og minnerik velkomst for våre nye studenter.</p></div></summary>
+    <v:image>//www.hiof.no/om/jobb/jobber-for-studenter/bli-fadder.jpg</v:image>
+    <v:image-thumbnail>//www.hiof.no/om/jobb/jobber-for-studenter/bli-fadder.jpg?alt=listing</v:image-thumbnail>
+    <v:image-caption>Fadderstyret og faddere bidrar til en god studiestart for våre nye studenter. (Foto: HiØ)</v:image-caption>
+  </entry>
+  <entry>
+    <id>tag:www.hiof.no,2025-08-14:/om/jobb/jobber-for-studenter/vil-du-bli-studentambassador.html</id>
+    <category term="type:structured-article" />
+    <title>Vil du bli studentambassadør?</title>
+    <published>2025-08-14T08:05:07.386Z</published>
+    <updated>2025-09-15T09:04:31.595Z</updated>
+    <link href="https://www.hiof.no/om/jobb/jobber-for-studenter/vil-du-bli-studentambassador.html" rel="alternate" type="text/html" />
+    <summary type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml"><p>Er du student på Høgskolen i Østfold? Er du utadvendt, sosial og glad i å formidle gjennom forskjellige kanaler? Vi trenger deg!</p><p>Høgskolen i Østfold ansetter hvert år studentambassadører som bidrar til markedsføring, presentasjoner, sosiale medier og deltar som modeller på foto- og filmoppdrag ved siden av studiene. Som studentambassadør får du muligheten til å formidle de gode historiene, informere og engasjere for Høgskolen, og få betalt for jobben.</p></div></summary>
+  </entry>
+</feed>

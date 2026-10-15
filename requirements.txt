@@ -1,0 +1,4 @@
+requests==2.34.2
+beautifulsoup4==4.15.0
+tzdata==2026.5  # tidssonedata for Europe/Oslo (trengs på Windows; Linux har det innebygd)
+pytest==9.1.1

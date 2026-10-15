@@ -1,0 +1,74 @@
+name: Daglig stillingssjekk
+
+on:
+  schedule:
+    # Hver dag kl. 15:00 norsk tid. Med timezone håndterer GitHub sommer- og vintertid selv.
+    # GitHub kan forsinke planlagte kjøringer ved høy belastning, så tidspunktet er ikke minuttnøyaktig.
+    - cron: "0 15 * * *"
+      timezone: "Europe/Oslo"
+  workflow_dispatch:
+    inputs:
+      test_notification:
+        description: "Send bare en testmelding til Discord og ntfy (historikken endres ikke)"
+        type: boolean
+        default: false
+
+# Minste nødvendige rettighet: lese koden og pushe oppdatert data/seen_jobs.json.
+permissions:
+  contents: write
+
+# Aldri to kjøringer samtidig, så historikken ikke får skrivekonflikter.
+concurrency:
+  group: hiof-job-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Hent koden
+        uses: actions/checkout@v7
+
+      - name: Installer Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Installer avhengigheter
+        run: pip install -r requirements.txt
+
+      - name: Se etter nye stillinger
+        timeout-minutes: 15
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TEST_NOTIFICATION: ${{ inputs.test_notification }}
+        run: |
+          if [ "$TEST_NOTIFICATION" = "true" ]; then
+            python src/main.py --test-notification
+          else
+            python src/main.py
+          fi
+
+      # Kjører også når forrige steg feilet, slik at varsler som faktisk ble sendt, blir lagret.
+      - name: Lagre historikken i repoet
+        if: always()
+        run: |
+          if [ -z "$(git status --porcelain -- data/seen_jobs.json)" ]; then
+            echo "Historikken er uendret."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/seen_jobs.json
+          git commit -m "Oppdater stillingshistorikk"
+          for attempt in 1 2 3; do
+            if git pull --rebase && git push; then
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "::error::Klarte ikke å lagre historikken i repoet."
+          exit 1

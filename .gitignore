@@ -1,0 +1,19 @@
+# Hemmeligheter – skal aldri i git
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Midlertidige filer fra atomisk lagring av historikken
+*.tmp
+
+# Lokale innstillinger
+.claude/settings.local.json
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
