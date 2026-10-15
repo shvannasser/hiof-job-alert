@@ -1,6 +1,6 @@
 # hiof-job-alert – stillingsvarsler for Høgskolen i Østfold
 
-Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 15:00 norsk tid med GitHub Actions og
+Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:00 og 14:00 norsk tid med GitHub Actions og
 sender nye stillinger til en Discord-kanal og til mobilen via ntfy. Ingen server, database eller betalte tjenester.
 
 Slik ser et varsel ut (generert fra ekte data 12.10.2026):
@@ -31,7 +31,7 @@ Undersøkt 12.10.2026 med faktiske forespørsler:
 | Publiseringstidspunkt | Jobbnorge oppgir bare dato (`dd.mm.åååå`, sjekket mot alle 1127 annonser i API-et). Studentstillingene har dato og klokkeslett (UTC i feeden, omregnet til norsk tid; stemmer med «Publisert» på selve siden). |
 | Jobbnorge-annonsesidene | Rendres med JavaScript (AngularJS) og har ingen publiseringsdato i HTML. Brukes derfor ikke. |
 
-**Valgt metode:** Appen henter tre kilder (tre forespørsler per døgn) og slår dem sammen på stabil ID:
+**Valgt metode:** Appen henter tre kilder (tre forespørsler per kjøring) og slår dem sammen på stabil ID:
 
 1. **Jobbnorge-API-et.** Strukturert, med dato, avdeling og sted.
 2. **Atom-feeden for studentstillinger.** Strukturert, med dato og klokkeslett.
@@ -46,7 +46,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 | Krav | Løsning |
 | --- | --- |
-| Kjøre hver dag kl. 15:00 norsk tid | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub) |
+| Kjøre hver dag kl. 12:00 og 14:00 norsk tid | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub) |
 | Manuell kjøring | `workflow_dispatch`, med valgfri testmelding |
 | Varsle Discord og mobil | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå) |
 | Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt» |
@@ -65,8 +65,8 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 ### Begrensninger
 
 - Jobbnorge oppgir ikke klokkeslett, så Jobbnorge-varsler viser «klokkeslett ikke oppgitt».
-- En annonse som legges ut **og** fjernes mellom to kjøringer (innen ett døgn), oppdages ikke.
-- GitHub kan forsinke planlagte kjøringer ved høy belastning. 15:00 er ikke minuttnøyaktig.
+- En annonse som legges ut **og** fjernes mellom to kjøringer (innen to timer, eller over natten), oppdages ikke.
+- GitHub kan forsinke planlagte kjøringer ved høy belastning. 12:00 og 14:00 er ikke minuttnøyaktig.
 - Jobbnorge-API-et og HTML-strukturen kan endres uten varsel. Da feiler kjøringen med en tydelig melding, og de andre kildene brukes fortsatt.
 - Studentstillinger har ingen stillings-ID og identifiseres med URL. Flytter HiØ en slik side, varsles den som ny.
 - ntfy-emnet er bare beskyttet ved at navnet er hemmelig.
@@ -89,7 +89,7 @@ et svar går tapt etter at meldingen faktisk ble levert, eller hvis `git push` a
 ```text
 hiof-job-alert/
 ├── .github/workflows/
-│   ├── daily-check.yml     Daglig kjøring kl. 15:00 + manuell kjøring, lagrer historikken
+│   ├── daily-check.yml     Kjøring kl. 12:00 og 14:00 + manuell kjøring, lagrer historikken
 │   └── tests.yml           Kjører testene ved hver push
 ├── src/
 │   ├── main.py             Styrer kjøringen: hent → sammenlign → lagre → varsle → lagre
@@ -136,10 +136,10 @@ Hver annonse i `data/seen_jobs.json` ser slik ut:
 
 **`.github/workflows/daily-check.yml`**
 
-- **Tidsplan:** `cron: "0 15 * * *"` med `timezone: "Europe/Oslo"`. GitHub støtter tidssone i `on.schedule` (bekreftet i GitHubs
-  dokumentasjon), og justerer selv for sommer- og vintertid. Uten tidssonestøtte måtte man brukt to UTC-tider
-  (13:00 om sommeren og 14:00 om vinteren) og latt skriptet avslutte når norsk klokke ikke er 15.
-- **Forsinkelser:** GitHub kan forsinke planlagte kjøringer. En forsinket eller utelatt kjøring tas igjen neste dag, fordi
+- **Tidsplan:** `cron: "0 12,14 * * *"` med `timezone: "Europe/Oslo"`. GitHub støtter tidssone i `on.schedule` (bekreftet i GitHubs
+  dokumentasjon), og justerer selv for sommer- og vintertid. Uten tidssonestøtte måtte man brukt
+  forskjellige UTC-tider om sommeren og vinteren.
+- **Forsinkelser:** GitHub kan forsinke planlagte kjøringer. En forsinket eller utelatt kjøring tas igjen ved neste kjøring, fordi
   appen sammenligner mot historikken og ikke mot tidspunkt.
 - **Manuell kjøring:** `workflow_dispatch` med avkrysningsboksen «Send bare en testmelding».
 - **Rettigheter:** bare `contents: write`, som trengs for å pushe historikken. Tokenet gjelder bare dette repoet og utløper når jobben er ferdig.
@@ -318,7 +318,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
 - [ ] G3: den «nye» stillingen ble varslet i begge kanaler, og en ny kjøring varslet ikke på nytt.
-- [ ] Dagen etter: under Actions finnes en kjøring med hendelsen **schedule**, rundt kl. 15:00 eller litt senere.
+- [ ] Dagen etter: under Actions finnes en kjøring med hendelsen **schedule**, rundt kl. 12:00 og 14:00 eller litt senere.
 - [ ] Du får e-post fra GitHub når en kjøring feiler (G4).
 
 ---
@@ -327,12 +327,12 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 | Tjeneste | Gratis kvote / grense | Forventet bruk |
 | --- | --- | --- |
-| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring | ca. 1 minutt per kjøring, rundt 30–60 minutter i måneden inkludert testkjøringer |
+| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring | ca. 1 minutt per kjøring, rundt 60–90 minutter i måneden inkludert testkjøringer |
 | GitHub Actions, offentlig repo | Gratis med standard runnere | Frarådes: historikken blir offentlig, og planlagte kjøringer slås av etter 60 dager uten aktivitet i repoet |
 | Når kvoten er brukt opp | Uten betalingsmåte blokkeres videre bruk; du blir ikke belastet | Ikke aktuelt med dette forbruket |
 | ntfy.sh (uten konto) | 250 meldinger per døgn, 4096 byte per melding | Noen få meldinger i uken |
 | Discord-webhook | Gratis, med fartsgrense per webhook | Appen venter automatisk ved HTTP 429 |
-| HiØ og Jobbnorge | Offentlige sider og API | Tre GET-forespørsler per døgn |
+| HiØ og Jobbnorge | Offentlige sider og API | Seks GET-forespørsler per døgn |
 | Lagring i repoet | Historikken vokser noen hundre byte per stilling | Godt under 1 MB per år |
 
 **Forventet driftskostnad: 0 kr.**
