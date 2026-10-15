@@ -6,9 +6,6 @@ on:
     # GitHub kan forsinke planlagte kjøringer ved høy belastning, så tidspunktet er ikke minuttnøyaktig.
     - cron: "0 12,14 * * *"
       timezone: "Europe/Oslo"
-    # MIDLERTIDIG for test: kl. 15:03 og 15:10. Fjern disse to linjene etterpå.
-    - cron: "3,10 15 * * *"
-      timezone: "Europe/Oslo"
   workflow_dispatch:
     inputs:
       test_notification:
