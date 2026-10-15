@@ -25,11 +25,9 @@ def test_missing_file_means_first_run(tmp_path):
     assert history.jobs == {}
 
 
-def test_shipped_state_file_is_valid_and_waits_for_first_run():
-    history = storage.load(Path(__file__).parent.parent / "data" / "seen_jobs.json")
-
-    assert not history.initialized
-    assert history.jobs == {}
+def test_committed_state_file_is_valid():
+    # Innholdet endres av workflowen etter hver kjøring; testen sjekker bare at fila kan leses.
+    storage.load(Path(__file__).parent.parent / "data" / "seen_jobs.json")
 
 
 def test_save_and_load_roundtrip(tmp_path):
