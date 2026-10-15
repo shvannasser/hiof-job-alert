@@ -11,7 +11,7 @@ import main
 import notifier
 import scraper
 import storage
-from helpers import DISCORD_URL, NTFY_TOPIC, fixture, jobbnorge_job, json_response, response
+from helpers import DISCORD_URL, NTFY_TOPIC, FakeSession, fixture, jobbnorge_job, json_response, response
 
 REAL_API_JOB = json.loads(fixture("jobbnorge.json"))["jobs"][0]
 
@@ -270,6 +270,7 @@ def cli(monkeypatch, tmp_path, session):
 
 def test_missing_secrets_stop_before_any_request(cli, monkeypatch, session):
     monkeypatch.delenv("NTFY_TOPIC")
+    monkeypatch.delenv("DISCORD_WEBHOOK_URL")
 
     assert main.main([]) == 2
     assert session.calls == []
@@ -321,3 +322,20 @@ def test_dotenv_is_read_but_real_environment_wins(tmp_path):
     main.load_dotenv(env_file, environ)
 
     assert environ == {"DISCORD_WEBHOOK_URL": "https://discord.com/api/webhooks/1/miljo", "NTFY_TOPIC": "fra-fil"}
+
+
+@pytest.mark.parametrize(
+    ("env", "expected_channels"),
+    [
+        ({"DISCORD_WEBHOOK_URL": DISCORD_URL}, ["discord"]),
+        ({"NTFY_TOPIC": NTFY_TOPIC}, ["ntfy"]),
+        ({"DISCORD_WEBHOOK_URL": DISCORD_URL, "NTFY_TOPIC": NTFY_TOPIC}, ["discord", "ntfy"]),
+    ],
+)
+def test_only_configured_channels_are_used(env, expected_channels):
+    assert [channel.name for channel in main.build_notifiers(env, FakeSession())] == expected_channels
+
+
+def test_at_least_one_channel_is_required():
+    with pytest.raises(notifier.ConfigError):
+        main.build_notifiers({"DISCORD_WEBHOOK_URL": " ", "NTFY_TOPIC": ""}, FakeSession())

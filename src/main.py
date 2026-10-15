@@ -47,13 +47,19 @@ def load_dotenv(path: Path, environ=os.environ) -> None:
 
 
 def build_notifiers(env, session) -> list:
-    missing = [name for name in ("DISCORD_WEBHOOK_URL", "NTFY_TOPIC") if not env.get(name, "").strip()]
-    if missing:
-        raise notifier.ConfigError(f"Mangler {', '.join(missing)}. Legg dem inn som GitHub-secrets (eller i .env lokalt).")
-    return [
-        notifier.DiscordNotifier(env["DISCORD_WEBHOOK_URL"].strip(), session),
-        notifier.NtfyNotifier(env["NTFY_TOPIC"].strip(), session),
-    ]
+    """Bruker kanalene som er satt opp. Minst én av DISCORD_WEBHOOK_URL og NTFY_TOPIC må finnes."""
+    discord_webhook_url = env.get("DISCORD_WEBHOOK_URL", "").strip()
+    ntfy_topic = env.get("NTFY_TOPIC", "").strip()
+    notifiers = []
+    if discord_webhook_url:
+        notifiers.append(notifier.DiscordNotifier(discord_webhook_url, session))
+    if ntfy_topic:
+        notifiers.append(notifier.NtfyNotifier(ntfy_topic, session))
+    if not notifiers:
+        raise notifier.ConfigError(
+            "Mangler DISCORD_WEBHOOK_URL og NTFY_TOPIC. Legg inn minst én av dem som GitHub-secret (eller i .env lokalt)."
+        )
+    return notifiers
 
 
 def check_jobs(state_path: Path, session, notifiers: list, *, dry_run: bool = False) -> int:

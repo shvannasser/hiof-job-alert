@@ -233,14 +233,14 @@ python3 -m venv .venv
 
 ### F4. Secrets
 
-I repoet på GitHub: **Settings → Secrets and variables → Actions → New repository secret.** Legg inn to secrets:
+I repoet på GitHub: **Settings → Secrets and variables → Actions → New repository secret.** Legg inn én eller begge, avhengig av hvor du vil ha varsler:
 
 | Name | Secret |
 | --- | --- |
 | `DISCORD_WEBHOOK_URL` | Webhook-URL-en fra F1 |
 | `NTFY_TOPIC` | Emnenavnet fra F2 (bare navnet, ikke `https://ntfy.sh/...`) |
 
-Ingen andre secrets trengs. Tokenet for å lagre historikken (`GITHUB_TOKEN`) lager GitHub automatisk.
+Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. Tokenet for å lagre historikken (`GITHUB_TOKEN`) lager GitHub automatisk.
 
 ---
 
@@ -289,7 +289,7 @@ Ingen andre secrets trengs. Tokenet for å lagre historikken (`GITHUB_TOKEN`) la
 
 | Melding i loggen | Hva du gjør |
 | --- | --- |
-| `Mangler DISCORD_WEBHOOK_URL` / `NTFY_TOPIC` | Legg inn secret (F4). Navnene må være nøyaktig like |
+| `Mangler DISCORD_WEBHOOK_URL og NTFY_TOPIC` | Legg inn minst én secret (F4). Navnene må være nøyaktig like |
 | `discord: … (HTTP 401)` eller `(HTTP 404)` | Webhooken er slettet eller URL-en er feil. Lag ny (F1) og oppdater secret |
 | `HiØ jobbside (HTML) feilet: HTTP 403` | HiØ avviser forespørsler fra GitHubs servere. Appen omgår ikke dette. Kontakt HiØ (`nettredaksjon@hiof.no`), eller kjør skriptet fra egen PC (G5) med Oppgaveplanlegging i Windows |
 | `fant ingen stillingslister (div.vrtx-feed)` | HiØ har endret siden. De andre kildene brukes fortsatt, men parseren i `src/scraper.py` må oppdateres |
@@ -312,9 +312,9 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 ## H. Sjekkliste ende til ende
 
-- [ ] `pytest` er grønt lokalt (67 tester), og **Tester** er grønn under Actions etter første push.
+- [ ] `pytest` er grønt lokalt (71 tester), og **Tester** er grønn under Actions etter første push.
 - [ ] Repoet er **Private**, og `.env` finnes ikke på GitHub.
-- [ ] Begge secrets finnes: `DISCORD_WEBHOOK_URL` og `NTFY_TOPIC`.
+- [ ] Minst én secret finnes: `DISCORD_WEBHOOK_URL` og/eller `NTFY_TOPIC`.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
 - [ ] G3: den «nye» stillingen ble varslet i begge kanaler, og en ny kjøring varslet ikke på nytt.
