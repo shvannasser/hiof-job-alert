@@ -59,6 +59,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 | Timeout og begrensede retries                      | 20 s timeout, maks 3 forsøk med 5 s og 10 s ventetid, respekterer `Retry-After` (maks 60 s)                     |
 | Feilhåndtering per kanal                           | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy                                             |
 | Prøve på nytt                                      | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer                                           |
+| Daglig statusmelding                               | «Alt virker» én gang per dag (stille på mobilen), «Noe feilet» ved hver feilet kjøring                          |
 | Logging uten hemmeligheter                         | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk             |
 | Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten                               |
 
@@ -137,7 +138,7 @@ Hver annonse i `data/seen_jobs.json` ser slik ut:
 
 **`.github/workflows/daily-check.yml`**
 
-- **Tidsplan:** `cron: "0 12,14 * * *"` med `timezone: "Europe/Oslo"`. GitHub støtter tidssone i `on.schedule` (bekreftet i GitHubs
+- **Tidsplan:** `cron: "7 12,14 * * *"` med `timezone: "Europe/Oslo"`. GitHub støtter tidssone i `on.schedule` (bekreftet i GitHubs
   dokumentasjon), og justerer selv for sommer- og vintertid. Uten tidssonestøtte måtte man brukt
   forskjellige UTC-tider om sommeren og vinteren.
 - **Forsinkelser:** GitHub kan forsinke planlagte kjøringer. En forsinket eller utelatt kjøring tas igjen ved neste kjøring, fordi
@@ -146,7 +147,7 @@ Hver annonse i `data/seen_jobs.json` ser slik ut:
 - **Rettigheter:** bare `contents: write`, som trengs for å pushe historikken. Tokenet gjelder bare dette repoet og utløper når jobben er ferdig.
 - **Samtidighet:** `concurrency` sørger for at bare én kjøring skriver historikken om gangen.
 - **Lagring:** committer `data/seen_jobs.json` bare når den er endret (gjør `git pull --rebase` og prøver opptil tre ganger).
-  Det blir altså ikke en commit hver dag, bare når noe har skjedd.
+  Datoen for siste «alt OK»-statusmelding lagres der også, så det blir normalt én commit per dag.
 - **Planlagte kjøringer bruker koden på standardgrenen** (`main`).
 
 **`.github/workflows/tests.yml`** kjører alle testene ved hver push og pull request, med bare lesetilgang.
@@ -185,6 +186,7 @@ python3 -m venv .venv
 | Feil fra nettsiden                   | `test_website_errors_leave_history_untouched`, `test_403_from_website_is_reported_without_hammering`, `test_other_sources_are_used_when_one_fails`, retry-testene i `test_scraper.py`                                                    |
 | Feil fra Discord                     | `test_discord_failure_does_not_affect_ntfy_and_is_retried_next_run`, `test_unavailable_channel_is_paused_for_the_rest_of_the_run`, `test_rejected_message_does_not_block_the_next_one`                                                   |
 | Feil fra ntfy                        | `test_ntfy_failure_does_not_affect_discord_and_is_retried_next_run`                                                                                                                                                                      |
+| Daglig statusmelding                 | `test_ok_status_is_sent_once_per_day`, `test_problem_status_is_sent_on_every_failed_run`                                                                                                                             |
 | Vedvarende lagring                   | `test_storage.py`: roundtrip, atomisk skriving, skadet fil overskrives aldri, den medfølgende `data/seen_jobs.json` er gyldig                                                                                                            |
 | Trygg oppdatering av varslingsstatus | `test_crash_mid_run_keeps_sent_status_and_avoids_duplicates`, `test_notification_status_is_tracked_separately_per_channel`, `test_gives_up_after_max_attempts`, `test_secrets_never_reach_logs_or_history`                               |
 
@@ -284,6 +286,9 @@ Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. To
 
 ### G4. Logger og feilsøking
 
+- **Daglig statusmelding:** etter første vellykkede kjøring hver dag kommer «✅ Alt virker som normalt» i Discord og
+  som stille varsel på mobilen. Feiler en kjøring, kommer «⚠️ Noe feilet» (med lyd) hver gang, med lenke til loggen.
+  **Kommer ingen statusmelding en dag, har sjekken ikke kjørt.** Se da under Actions.
 - **Logger:** Actions → velg kjøring → **check** → klikk på et steg. Viktige linjer: `Ny stilling: …`,
   `discord: varslet om …`, `ntfy: varslet om …` og oppsummeringen `Ferdig: … Alle varsler levert: ja`.
 - **Avslutningskoder:** 0 = OK. 1 = en kilde eller et varsel feilet (det som lyktes, er lagret, og resten prøves neste gang).
@@ -316,7 +321,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 ## H. Sjekkliste ende til ende
 
-- [ ] `pytest` er grønt lokalt (71 tester), og **Tester** er grønn under Actions etter første push.
+- [ ] `pytest` er grønt lokalt (73 tester), og **Tester** er grønn under Actions etter første push.
 - [ ] Repoet er **Private**, og `.env` finnes ikke på GitHub.
 - [ ] Minst én secret finnes: `DISCORD_WEBHOOK_URL` og/eller `NTFY_TOPIC`.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.

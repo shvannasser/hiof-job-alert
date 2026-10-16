@@ -7,6 +7,7 @@ from urllib.parse import urlsplit
 import http_client
 
 HEADER = "NY STILLING – Høgskolen i Østfold"
+STATUS_HEADER = "Status – HiØ-stillingsvarsler"
 NTFY_SERVER = "https://ntfy.sh"
 NTFY_TOPIC = re.compile(r"[A-Za-z0-9_-]{1,64}")  # samme regel som ntfy bruker for emnenavn
 MAX_TITLE_LENGTH = 250  # holder meldingen godt under grensene (Discord 2000 tegn, ntfy 4096 byte)
@@ -60,6 +61,13 @@ class DiscordNotifier:
             "content": content,
             "allowed_mentions": {"parse": []},  # en tittel med @everyone skal aldri pinge noen
         }
+        self._post(payload)
+
+    def send_status(self, text: str, ok: bool) -> None:
+        content = f"**{STATUS_HEADER}**\n\n{'✅' if ok else '⚠️'} {text}"
+        self._post({"content": content, "allowed_mentions": {"parse": []}})
+
+    def _post(self, payload: dict) -> None:
         # wait=true: Discord svarer først når meldingen faktisk er opprettet.
         http_client.request(self._session, "POST", self._url, params={"wait": "true"}, json=payload)
 
@@ -87,5 +95,15 @@ class NtfyNotifier:
             "tags": ["briefcase"],
             "click": record["url"],  # trykk på varselet åpner annonsen
             "actions": [{"action": "view", "label": "Åpne annonsen", "url": record["url"]}],
+        }
+        http_client.request(self._session, "POST", self._server, json=payload)
+
+    def send_status(self, text: str, ok: bool) -> None:
+        payload = {
+            "topic": self._topic,
+            "title": STATUS_HEADER,
+            "message": text,
+            "tags": ["white_check_mark" if ok else "warning"],
+            "priority": 2 if ok else 4,  # «alt OK» kommer stille; feil gir lyd/vibrasjon
         }
         http_client.request(self._session, "POST", self._server, json=payload)

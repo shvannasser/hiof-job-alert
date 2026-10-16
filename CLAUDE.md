@@ -6,7 +6,7 @@ Build a complete, minimal, reliable job-alert application that monitors the Høg
 
 https://www.hiof.no/om/jobb/
 
-The application must check the page every day at 15:00 Norwegian local time and notify me when a new job listing is discovered.
+The application must check the page every day at about 12:07 and 14:07 Norwegian local time (not on the full hour, where GitHub often drops scheduled runs) and notify me when a new job listing is discovered.
 
 Notifications must be sent to:
 
@@ -139,6 +139,8 @@ Make the URL clickable wherever supported.
 
 Keep notifications concise and readable on a mobile screen.
 
+Send a short daily status message to both channels: "all OK" once per day (silent on the phone), and a warning on every failed run, so a missing status message shows that the check did not run.
+
 Track Discord and ntfy delivery independently.
 
 If one channel succeeds and the other fails, retry the failed channel without unnecessarily resending the successful notification.
@@ -175,7 +177,7 @@ Use GitHub Actions for automated execution.
 
 Requirements:
 
-- Run daily at 15:00 in the `Europe/Oslo` time zone.
+- Run daily at 12:07 and 14:07 in the `Europe/Oslo` time zone.
 - Account for daylight-saving time.
 - Prefer native time-zone-aware scheduling if supported by the selected GitHub Actions configuration.
 - Do not silently use a fixed UTC schedule that shifts by an hour during part of the year.
