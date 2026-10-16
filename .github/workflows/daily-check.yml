@@ -2,9 +2,9 @@ name: Daglig stillingssjekk
 
 on:
   schedule:
-    # Hver dag kl. 12:00 og 14:00 norsk tid. Med timezone håndterer GitHub sommer- og vintertid selv.
+    # Hver dag ca. kl. 12:07 og 14:07 norsk tid (ikke hel time: GitHub dropper ofte planlagte kjøringer på :00). Med timezone håndterer GitHub sommer- og vintertid selv.
     # GitHub kan forsinke planlagte kjøringer ved høy belastning, så tidspunktet er ikke minuttnøyaktig.
-    - cron: "0 12,14 * * *"
+    - cron: "7 12,14 * * *"
       timezone: "Europe/Oslo"
   workflow_dispatch:
     inputs:

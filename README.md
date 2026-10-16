@@ -1,6 +1,6 @@
 # hiof-job-alert – stillingsvarsler for Høgskolen i Østfold
 
-Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:00 og 14:00 norsk tid med GitHub Actions og
+Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:07 og 14:07 norsk tid med GitHub Actions og
 sender nye stillinger til en Discord-kanal og til mobilen via ntfy. Ingen server, database eller betalte tjenester.
 
 Slik ser et varsel ut (generert fra ekte data 12.10.2026):
@@ -46,7 +46,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 | Krav | Løsning |
 | --- | --- |
-| Kjøre hver dag kl. 12:00 og 14:00 norsk tid | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub) |
+| Kjøre hver dag kl. 12:07 og 14:07 norsk tid | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub) |
 | Manuell kjøring | `workflow_dispatch`, med valgfri testmelding |
 | Varsle Discord og mobil | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå) |
 | Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt» |
@@ -66,7 +66,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 - Jobbnorge oppgir ikke klokkeslett, så Jobbnorge-varsler viser «klokkeslett ikke oppgitt».
 - En annonse som legges ut **og** fjernes mellom to kjøringer (innen to timer, eller over natten), oppdages ikke.
-- GitHub kan forsinke planlagte kjøringer ved høy belastning. 12:00 og 14:00 er ikke minuttnøyaktig.
+- GitHub kan forsinke planlagte kjøringer ved høy belastning. 12:07 og 14:07 er ikke minuttnøyaktig.
 - Jobbnorge-API-et og HTML-strukturen kan endres uten varsel. Da feiler kjøringen med en tydelig melding, og de andre kildene brukes fortsatt.
 - Studentstillinger har ingen stillings-ID og identifiseres med URL. Flytter HiØ en slik side, varsles den som ny.
 - ntfy-emnet er bare beskyttet ved at navnet er hemmelig.
@@ -89,7 +89,7 @@ et svar går tapt etter at meldingen faktisk ble levert, eller hvis `git push` a
 ```text
 hiof-job-alert/
 ├── .github/workflows/
-│   ├── daily-check.yml     Kjøring kl. 12:00 og 14:00 + manuell kjøring, lagrer historikken
+│   ├── daily-check.yml     Kjøring kl. 12:07 og 14:07 + manuell kjøring, lagrer historikken
 │   └── tests.yml           Kjører testene ved hver push
 ├── src/
 │   ├── main.py             Styrer kjøringen: hent → sammenlign → lagre → varsle → lagre
@@ -318,7 +318,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
 - [ ] G3: den «nye» stillingen ble varslet i begge kanaler, og en ny kjøring varslet ikke på nytt.
-- [ ] Dagen etter: under Actions finnes en kjøring med hendelsen **schedule**, rundt kl. 12:00 og 14:00 eller litt senere.
+- [ ] Dagen etter: under Actions finnes en kjøring med hendelsen **schedule**, rundt kl. 12:07 og 14:07 eller litt senere.
 - [ ] Du får e-post fra GitHub når en kjøring feiler (G4).
 
 ---
