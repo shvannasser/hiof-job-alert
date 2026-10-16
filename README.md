@@ -23,13 +23,13 @@ Lenke: https://www.jobbnorge.no/ledige-stillinger/stilling/307772
 
 Undersøkt 12.10.2026 med faktiske forespørsler:
 
-| Spørsmål | Funn |
-| --- | --- |
-| Tilgang (403?) | `https://www.hiof.no/om/jobb/` svarte HTTP 200 fra en vanlig PC, både med appens egen User-Agent, `requests` sin standard og flere andre. 403 lot seg ikke gjenskape. `robots.txt` tillater `/om/jobb/`. Tilgang **fra GitHubs servere** kan først bekreftes ved første kjøring (del G). |
-| Hvordan stillingene leveres | Vanlig server-rendret HTML fra publiseringssystemet Vortex, uten JavaScript-lasting. Siden har to lister (`div.vrtx-feed` → `a.item-title`): «Alle ledige stillinger hos HiØ i Jobbnorge» og «Ledige studentstillinger på HiØ». Listene viser bare tittel og lenke, ingen dato. |
-| Offisielt API / feed | **Jobbnorge Public API v3** (dokumentert med Swagger på `publicapi.jobbnorge.no`): `GET /v3/Jobs?employer=1562` (1562 = HiØ) gir alle HiØ-stillinger som JSON med stabil `id`, tittel, avdeling, sted, `publicationDate` og søknadsfrist, uten paginering. **Vortex Atom-feed** for studentstillinger: `https://www.hiof.no/om/jobb/jobber-for-studenter/?vrtx=feed` med eksakt publiseringstidspunkt. |
-| Publiseringstidspunkt | Jobbnorge oppgir bare dato (`dd.mm.åååå`, sjekket mot alle 1127 annonser i API-et). Studentstillingene har dato og klokkeslett (UTC i feeden, omregnet til norsk tid; stemmer med «Publisert» på selve siden). |
-| Jobbnorge-annonsesidene | Rendres med JavaScript (AngularJS) og har ingen publiseringsdato i HTML. Brukes derfor ikke. |
+| Spørsmål                    | Funn                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tilgang (403?)              | `https://www.hiof.no/om/jobb/` svarte HTTP 200 fra en vanlig PC, både med appens egen User-Agent, `requests` sin standard og flere andre. 403 lot seg ikke gjenskape. `robots.txt` tillater `/om/jobb/`. Tilgang **fra GitHubs servere** kan først bekreftes ved første kjøring (del G).                                                                                                               |
+| Hvordan stillingene leveres | Vanlig server-rendret HTML fra publiseringssystemet Vortex, uten JavaScript-lasting. Siden har to lister (`div.vrtx-feed` → `a.item-title`): «Alle ledige stillinger hos HiØ i Jobbnorge» og «Ledige studentstillinger på HiØ». Listene viser bare tittel og lenke, ingen dato.                                                                                                                        |
+| Offisielt API / feed        | **Jobbnorge Public API v3** (dokumentert med Swagger på `publicapi.jobbnorge.no`): `GET /v3/Jobs?employer=1562` (1562 = HiØ) gir alle HiØ-stillinger som JSON med stabil `id`, tittel, avdeling, sted, `publicationDate` og søknadsfrist, uten paginering. **Vortex Atom-feed** for studentstillinger: `https://www.hiof.no/om/jobb/jobber-for-studenter/?vrtx=feed` med eksakt publiseringstidspunkt. |
+| Publiseringstidspunkt       | Jobbnorge oppgir bare dato (`dd.mm.åååå`, sjekket mot alle 1127 annonser i API-et). Studentstillingene har dato og klokkeslett (UTC i feeden, omregnet til norsk tid; stemmer med «Publisert» på selve siden).                                                                                                                                                                                         |
+| Jobbnorge-annonsesidene     | Rendres med JavaScript (AngularJS) og har ingen publiseringsdato i HTML. Brukes derfor ikke.                                                                                                                                                                                                                                                                                                           |
 
 **Valgt metode:** Appen henter tre kilder (tre forespørsler per kjøring) og slår dem sammen på stabil ID:
 
@@ -44,23 +44,23 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 ## B. Kravspesifikasjon og begrensninger
 
-| Krav | Løsning |
-| --- | --- |
-| Kjøre hver dag kl. 12:07 og 14:07 norsk tid | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub) |
-| Manuell kjøring | `workflow_dispatch`, med valgfri testmelding |
-| Varsle Discord og mobil | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå) |
-| Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt» |
-| Ikke finne på datoer | Kun datoer fra kilden. Oppdagelsestidspunktet lagres separat som `first_seen_at` |
-| Stabil identifikasjon | `jobbnorge:<stillingsnummer>`; ellers normalisert URL (https, uten `#`, `index.html` og `/` til slutt) |
-| Første kjøring varsler ikke | Eksisterende annonser registreres med `"baseline": true`. Krever at alle kilder svarer, ellers lagres ingenting |
-| Ikke slette historikk ved feil | Historikken slettes aldri automatisk. Skadet fil overskrives aldri (kjøringen stopper) |
-| Endrede annonser | Oppdateres i historikken uten nytt varsel |
-| Duplikater | Én annonse per ID, også når den finnes i flere kilder |
-| Timeout og begrensede retries | 20 s timeout, maks 3 forsøk med 5 s og 10 s ventetid, respekterer `Retry-After` (maks 60 s) |
-| Feilhåndtering per kanal | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy |
-| Prøve på nytt | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer |
-| Logging uten hemmeligheter | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk |
-| Vedvarende lagring | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten |
+| Krav                                               | Løsning                                                                                                         |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Kjøre hver dag kl. 12:07 og 14:07 norsk tid        | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub)                 |
+| Manuell kjøring                                    | `workflow_dispatch`, med valgfri testmelding                                                                    |
+| Varsle Discord og mobil                            | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå)                                                |
+| Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt»                   |
+| Ikke finne på datoer                               | Kun datoer fra kilden. Oppdagelsestidspunktet lagres separat som `first_seen_at`                                |
+| Stabil identifikasjon                              | `jobbnorge:<stillingsnummer>`; ellers normalisert URL (https, uten `#`, `index.html` og `/` til slutt)          |
+| Første kjøring varsler ikke                        | Eksisterende annonser registreres med `"baseline": true`. Krever at alle kilder svarer, ellers lagres ingenting |
+| Ikke slette historikk ved feil                     | Historikken slettes aldri automatisk. Skadet fil overskrives aldri (kjøringen stopper)                          |
+| Endrede annonser                                   | Oppdateres i historikken uten nytt varsel                                                                       |
+| Duplikater                                         | Én annonse per ID, også når den finnes i flere kilder                                                           |
+| Timeout og begrensede retries                      | 20 s timeout, maks 3 forsøk med 5 s og 10 s ventetid, respekterer `Retry-After` (maks 60 s)                     |
+| Feilhåndtering per kanal                           | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy                                             |
+| Prøve på nytt                                      | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer                                           |
+| Logging uten hemmeligheter                         | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk             |
+| Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten                               |
 
 ### Begrensninger
 
@@ -103,6 +103,7 @@ hiof-job-alert/
 │   ├── conftest.py
 │   ├── test_scraper.py  test_storage.py  test_notifier.py  test_main.py
 ├── data/seen_jobs.json     Historikken (starter tom, fylles ved første kjøring)
+├── assets/bot-icon.jpg     Bildet til Discord-webhooken (F1)
 ├── requirements.txt        requests, beautifulsoup4, tzdata, pytest (låste versjoner)
 ├── pytest.ini
 ├── .env.example            Mal for lokal kjøring, uten ekte hemmeligheter
@@ -173,19 +174,19 @@ python3 -m venv .venv
 .venv/bin/python -m pytest -v
 ```
 
-| Krav | Tester |
-| --- | --- |
-| Parsing av annonser | `test_scraper.py`: `test_parse_hiof_page_*`, `test_parse_jobbnorge_*`, `test_parse_student_feed_*` |
-| Stabil identifikasjon | `test_jobbnorge_ads_are_identified_by_job_number`, `test_other_ads_are_identified_by_normalized_url`, `test_same_job_from_several_sources_is_merged` |
-| Første kjøring uten varsler | `test_first_run_registers_existing_jobs_without_notifying`, `test_first_run_saves_nothing_if_a_source_fails` |
-| Ny annonse | `test_new_job_is_notified_once_in_each_channel`, `test_job_only_on_hiof_page_is_notified_with_missing_date` |
-| Duplikatbeskyttelse | `test_no_duplicate_notifications_on_later_runs`, `test_duplicate_within_one_source_gives_one_job`, `test_empty_sources_never_delete_history_and_returning_jobs_are_not_renotified`, `test_changed_job_is_updated_but_not_notified_again` |
-| Manglende publiseringstidspunkt | `test_publication_time_is_shown_only_when_the_source_gives_it`, `test_parse_jobbnorge_never_invents_missing_metadata`, `test_parse_timestamp_handles_winter_time_and_never_guesses` |
-| Feil fra nettsiden | `test_website_errors_leave_history_untouched`, `test_403_from_website_is_reported_without_hammering`, `test_other_sources_are_used_when_one_fails`, retry-testene i `test_scraper.py` |
-| Feil fra Discord | `test_discord_failure_does_not_affect_ntfy_and_is_retried_next_run`, `test_unavailable_channel_is_paused_for_the_rest_of_the_run`, `test_rejected_message_does_not_block_the_next_one` |
-| Feil fra ntfy | `test_ntfy_failure_does_not_affect_discord_and_is_retried_next_run` |
-| Vedvarende lagring | `test_storage.py`: roundtrip, atomisk skriving, skadet fil overskrives aldri, den medfølgende `data/seen_jobs.json` er gyldig |
-| Trygg oppdatering av varslingsstatus | `test_crash_mid_run_keeps_sent_status_and_avoids_duplicates`, `test_notification_status_is_tracked_separately_per_channel`, `test_gives_up_after_max_attempts`, `test_secrets_never_reach_logs_or_history` |
+| Krav                                 | Tester                                                                                                                                                                                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parsing av annonser                  | `test_scraper.py`: `test_parse_hiof_page_*`, `test_parse_jobbnorge_*`, `test_parse_student_feed_*`                                                                                                                                       |
+| Stabil identifikasjon                | `test_jobbnorge_ads_are_identified_by_job_number`, `test_other_ads_are_identified_by_normalized_url`, `test_same_job_from_several_sources_is_merged`                                                                                     |
+| Første kjøring uten varsler          | `test_first_run_registers_existing_jobs_without_notifying`, `test_first_run_saves_nothing_if_a_source_fails`                                                                                                                             |
+| Ny annonse                           | `test_new_job_is_notified_once_in_each_channel`, `test_job_only_on_hiof_page_is_notified_with_missing_date`                                                                                                                              |
+| Duplikatbeskyttelse                  | `test_no_duplicate_notifications_on_later_runs`, `test_duplicate_within_one_source_gives_one_job`, `test_empty_sources_never_delete_history_and_returning_jobs_are_not_renotified`, `test_changed_job_is_updated_but_not_notified_again` |
+| Manglende publiseringstidspunkt      | `test_publication_time_is_shown_only_when_the_source_gives_it`, `test_parse_jobbnorge_never_invents_missing_metadata`, `test_parse_timestamp_handles_winter_time_and_never_guesses`                                                      |
+| Feil fra nettsiden                   | `test_website_errors_leave_history_untouched`, `test_403_from_website_is_reported_without_hammering`, `test_other_sources_are_used_when_one_fails`, retry-testene i `test_scraper.py`                                                    |
+| Feil fra Discord                     | `test_discord_failure_does_not_affect_ntfy_and_is_retried_next_run`, `test_unavailable_channel_is_paused_for_the_rest_of_the_run`, `test_rejected_message_does_not_block_the_next_one`                                                   |
+| Feil fra ntfy                        | `test_ntfy_failure_does_not_affect_discord_and_is_retried_next_run`                                                                                                                                                                      |
+| Vedvarende lagring                   | `test_storage.py`: roundtrip, atomisk skriving, skadet fil overskrives aldri, den medfølgende `data/seen_jobs.json` er gyldig                                                                                                            |
+| Trygg oppdatering av varslingsstatus | `test_crash_mid_run_keeps_sent_status_and_avoids_duplicates`, `test_notification_status_is_tracked_separately_per_channel`, `test_gives_up_after_max_attempts`, `test_secrets_never_reach_logs_or_history`                               |
 
 ---
 
@@ -196,7 +197,8 @@ python3 -m venv .venv
 1. Åpne Discord og gå til en server der du har rettigheten «Administrer webhooks» (din egen server holder).
 2. **Serverinnstillinger → Integrasjoner → Webhooks → Ny webhook.**
 3. Gi den et navn, for eksempel `HiØ-stillinger`, og velg kanalen varslene skal til.
-4. Trykk **Kopier webhook-URL**. URL-en ser ut som `https://discord.com/api/webhooks/<tall>/<token>`.
+4. Trykk på det runde bildet til venstre og last opp `assets/bot-icon.jpg` som bilde på webhooken.
+5. Trykk **Kopier webhook-URL**. URL-en ser ut som `https://discord.com/api/webhooks/<tall>/<token>`.
    Behandle den som et passord: alle som har den, kan poste i kanalen.
 
 ### F2. ntfy på mobilen
@@ -209,6 +211,7 @@ python3 -m venv .venv
    ```
 
    Tillatte tegn er A–Z, a–z, 0–9, `-` og `_`, maks 64 tegn.
+
 3. I appen: trykk **+** (abonner på emne), lim inn emnenavnet og behold serveren `ntfy.sh`. Trykk **Abonner**.
 
 ### F3. GitHub-repository
@@ -235,10 +238,10 @@ python3 -m venv .venv
 
 I repoet på GitHub: **Settings → Secrets and variables → Actions → New repository secret.** Legg inn én eller begge, avhengig av hvor du vil ha varsler:
 
-| Name | Secret |
-| --- | --- |
-| `DISCORD_WEBHOOK_URL` | Webhook-URL-en fra F1 |
-| `NTFY_TOPIC` | Emnenavnet fra F2 (bare navnet, ikke `https://ntfy.sh/...`) |
+| Name                  | Secret                                                      |
+| --------------------- | ----------------------------------------------------------- |
+| `DISCORD_WEBHOOK_URL` | Webhook-URL-en fra F1                                       |
+| `NTFY_TOPIC`          | Emnenavnet fra F2 (bare navnet, ikke `https://ntfy.sh/...`) |
 
 Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. Tokenet for å lagre historikken (`GITHUB_TOKEN`) lager GitHub automatisk.
 
@@ -267,6 +270,7 @@ Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. To
 
    Tallene er dagens; de endrer seg når HiØ legger ut eller fjerner stillinger. Står det `HTTP 403`, blokkerer HiØ GitHubs
    servere (se feilsøking under).
+
 3. Det skal komme en ny commit, **«Oppdater stillingshistorikk»**, fra `github-actions[bot]`. Da er `data/seen_jobs.json` fylt ut.
 
 ### G3. Ende-til-ende-test av et ekte varsel
@@ -287,14 +291,14 @@ Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. To
 - **E-post ved feil:** GitHub sender som standard e-post når en planlagt kjøring feiler, til den som sist endret
   cron-linjen. Sjekk at **Settings → Notifications → Actions** hos deg varsler om feilede kjøringer.
 
-| Melding i loggen | Hva du gjør |
-| --- | --- |
-| `Mangler DISCORD_WEBHOOK_URL og NTFY_TOPIC` | Legg inn minst én secret (F4). Navnene må være nøyaktig like |
-| `discord: … (HTTP 401)` eller `(HTTP 404)` | Webhooken er slettet eller URL-en er feil. Lag ny (F1) og oppdater secret |
-| `HiØ jobbside (HTML) feilet: HTTP 403` | HiØ avviser forespørsler fra GitHubs servere. Appen omgår ikke dette. Kontakt HiØ (`nettredaksjon@hiof.no`), eller kjør skriptet fra egen PC (G5) med Oppgaveplanlegging i Windows |
-| `fant ingen stillingslister (div.vrtx-feed)` | HiØ har endret siden. De andre kildene brukes fortsatt, men parseren i `src/scraper.py` må oppdateres |
-| `Klarte ikke å lagre historikken i repoet` | Sjekk at `main` ikke har grenbeskyttelse som stopper `github-actions[bot]` |
-| `Historikken i … har et ukjent format` | `data/seen_jobs.json` er ugyldig JSON (ofte etter manuell redigering). Rett feilen eller tilbakestill filen i historikken på GitHub |
+| Melding i loggen                             | Hva du gjør                                                                                                                                                                        |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Mangler DISCORD_WEBHOOK_URL og NTFY_TOPIC`  | Legg inn minst én secret (F4). Navnene må være nøyaktig like                                                                                                                       |
+| `discord: … (HTTP 401)` eller `(HTTP 404)`   | Webhooken er slettet eller URL-en er feil. Lag ny (F1) og oppdater secret                                                                                                          |
+| `HiØ jobbside (HTML) feilet: HTTP 403`       | HiØ avviser forespørsler fra GitHubs servere. Appen omgår ikke dette. Kontakt HiØ (`nettredaksjon@hiof.no`), eller kjør skriptet fra egen PC (G5) med Oppgaveplanlegging i Windows |
+| `fant ingen stillingslister (div.vrtx-feed)` | HiØ har endret siden. De andre kildene brukes fortsatt, men parseren i `src/scraper.py` må oppdateres                                                                              |
+| `Klarte ikke å lagre historikken i repoet`   | Sjekk at `main` ikke har grenbeskyttelse som stopper `github-actions[bot]`                                                                                                         |
+| `Historikken i … har et ukjent format`       | `data/seen_jobs.json` er ugyldig JSON (ofte etter manuell redigering). Rett feilen eller tilbakestill filen i historikken på GitHub                                                |
 
 ### G5. Kjøre lokalt
 
@@ -325,15 +329,15 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 ## I. Gratis kvoter, begrensninger og driftskostnader
 
-| Tjeneste | Gratis kvote / grense | Forventet bruk |
-| --- | --- | --- |
-| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring | ca. 1 minutt per kjøring, rundt 60–90 minutter i måneden inkludert testkjøringer |
-| GitHub Actions, offentlig repo | Gratis med standard runnere | Frarådes: historikken blir offentlig, og planlagte kjøringer slås av etter 60 dager uten aktivitet i repoet |
-| Når kvoten er brukt opp | Uten betalingsmåte blokkeres videre bruk; du blir ikke belastet | Ikke aktuelt med dette forbruket |
-| ntfy.sh (uten konto) | 250 meldinger per døgn, 4096 byte per melding | Noen få meldinger i uken |
-| Discord-webhook | Gratis, med fartsgrense per webhook | Appen venter automatisk ved HTTP 429 |
-| HiØ og Jobbnorge | Offentlige sider og API | Seks GET-forespørsler per døgn |
-| Lagring i repoet | Historikken vokser noen hundre byte per stilling | Godt under 1 MB per år |
+| Tjeneste                                  | Gratis kvote / grense                                           | Forventet bruk                                                                                              |
+| ----------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring                 | ca. 1 minutt per kjøring, rundt 60–90 minutter i måneden inkludert testkjøringer                            |
+| GitHub Actions, offentlig repo            | Gratis med standard runnere                                     | Frarådes: historikken blir offentlig, og planlagte kjøringer slås av etter 60 dager uten aktivitet i repoet |
+| Når kvoten er brukt opp                   | Uten betalingsmåte blokkeres videre bruk; du blir ikke belastet | Ikke aktuelt med dette forbruket                                                                            |
+| ntfy.sh (uten konto)                      | 250 meldinger per døgn, 4096 byte per melding                   | Noen få meldinger i uken                                                                                    |
+| Discord-webhook                           | Gratis, med fartsgrense per webhook                             | Appen venter automatisk ved HTTP 429                                                                        |
+| HiØ og Jobbnorge                          | Offentlige sider og API                                         | Seks GET-forespørsler per døgn                                                                              |
+| Lagring i repoet                          | Historikken vokser noen hundre byte per stilling                | Godt under 1 MB per år                                                                                      |
 
 **Forventet driftskostnad: 0 kr.**
 
@@ -344,3 +348,8 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 - Oppdater gjerne versjonene i `requirements.txt` og `actions/*@v7` en gang i året, og kjør testene etterpå.
 - `MAX_ATTEMPTS` i `src/storage.py` styrer hvor mange kjøringer et mislykket varsel prøves (standard 10). Gitt opp-varsler
   får status `failed`. Sett status tilbake til `pending` i `data/seen_jobs.json` for å prøve igjen.
+
+## Om utviklingen
+
+Koden er utviklet gjennom vibe-koding med [Claude Code](https://claude.com/claude-code) og modellen Claude Opus 5.5.
+Bot-ikonet er generert med Gemini.
