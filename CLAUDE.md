@@ -139,7 +139,7 @@ Make the URL clickable wherever supported.
 
 Keep notifications concise and readable on a mobile screen.
 
-Send a short daily status message to both channels: "all OK" after every run (silent on the phone when OK), and a warning on every failed run, so a missing status message shows that the check did not run. Runs are started by cron-job.org via workflow_dispatch because GitHub never triggered the `schedule`.
+Send messages only for new listings. No "all OK" or status messages. Runs are started by cron-job.org via workflow_dispatch because GitHub never triggered the `schedule`.
 
 Track Discord and ntfy delivery independently.
 

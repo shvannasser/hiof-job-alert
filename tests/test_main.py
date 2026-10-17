@@ -300,32 +300,7 @@ def test_full_cli_run_first_registers_then_notifies(cli, session):
 
     session.set(scraper.JOBBNORGE_API_URL, api_with(jobbnorge_job(400001, "Rektor")))
     assert main.main([]) == 0
-    discord_messages = [call["json"]["content"] for call in session.calls_to(DISCORD_URL)]
-    assert sum("Tittel: Rektor" in message for message in discord_messages) == 1
-
-
-def test_ok_status_is_sent_after_every_run(cli, session):
-    for _ in range(2):
-        assert main.main([]) == 0
-
-    discord_calls = session.calls_to(DISCORD_URL)
-    ntfy_calls = session.calls_to(notifier.NTFY_SERVER)
-    assert len(discord_calls) == len(ntfy_calls) == 2
-    assert all("alt virker" in call["json"]["content"] for call in discord_calls)
-    assert all(call["json"]["priority"] == 2 for call in ntfy_calls)  # stille varsel på mobilen
-
-
-def test_problem_status_is_sent_on_every_failed_run(cli, session):
-    assert main.main([]) == 0
-    session.set(scraper.STUDENT_FEED_URL, 503)
-    session.calls.clear()
-
-    for _ in range(2):
-        assert main.main([]) == 1
-
-    assert len(session.calls_to(DISCORD_URL)) == 2
-    assert all("Noe feilet" in call["json"]["content"] for call in session.calls_to(DISCORD_URL))
-    assert all(call["json"]["priority"] == 4 for call in session.calls_to(notifier.NTFY_SERVER))
+    assert len(session.calls_to(DISCORD_URL)) == 1
 
 
 def test_corrupt_history_stops_the_run_without_overwriting(cli, session):

@@ -59,7 +59,6 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 | Timeout og begrensede retries                      | 20 s timeout, maks 3 forsøk med 5 s og 10 s ventetid, respekterer `Retry-After` (maks 60 s)                     |
 | Feilhåndtering per kanal                           | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy                                             |
 | Prøve på nytt                                      | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer                                           |
-| Statusmelding                                      | Etter hver kjøring: «Alt virker» (stille på mobilen) eller «Noe feilet» (med lyd)                               |
 | Logging uten hemmeligheter                         | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk             |
 | Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten                               |
 
@@ -186,7 +185,6 @@ python3 -m venv .venv
 | Feil fra nettsiden                   | `test_website_errors_leave_history_untouched`, `test_403_from_website_is_reported_without_hammering`, `test_other_sources_are_used_when_one_fails`, retry-testene i `test_scraper.py`                                                    |
 | Feil fra Discord                     | `test_discord_failure_does_not_affect_ntfy_and_is_retried_next_run`, `test_unavailable_channel_is_paused_for_the_rest_of_the_run`, `test_rejected_message_does_not_block_the_next_one`                                                   |
 | Feil fra ntfy                        | `test_ntfy_failure_does_not_affect_discord_and_is_retried_next_run`                                                                                                                                                                      |
-| Statusmelding                        | `test_ok_status_is_sent_after_every_run`, `test_problem_status_is_sent_on_every_failed_run`                                                                                                                             |
 | Vedvarende lagring                   | `test_storage.py`: roundtrip, atomisk skriving, skadet fil overskrives aldri, den medfølgende `data/seen_jobs.json` er gyldig                                                                                                            |
 | Trygg oppdatering av varslingsstatus | `test_crash_mid_run_keeps_sent_status_and_avoids_duplicates`, `test_notification_status_is_tracked_separately_per_channel`, `test_gives_up_after_max_attempts`, `test_secrets_never_reach_logs_or_history`                               |
 
@@ -304,15 +302,14 @@ Tokenet lagres hos cron-job.org. Lekker det, kan det bare starte og stoppe kjør
 
 ### G4. Logger og feilsøking
 
-- **Statusmelding:** etter hver kjøring kommer «✅ … alt virker» i Discord og som stille varsel på mobilen. Feiler en
-  kjøring, kommer «⚠️ Noe feilet» (med lyd), med lenke til loggen.
-  **Kommer ingen statusmelding etter kl. 12:07 eller 14:07, har sjekken ikke kjørt.** Se da historikken i cron-job.org og under Actions.
+- **Bare nye stillinger varsles.** Det kommer ingen melding når alt går som normalt. Om sjekken har kjørt, ser du under
+  Actions og i historikken i cron-job.org. Feilede kjøringer gir e-post (se under).
 - **Logger:** Actions → velg kjøring → **check** → klikk på et steg. Viktige linjer: `Ny stilling: …`,
   `discord: varslet om …`, `ntfy: varslet om …` og oppsummeringen `Ferdig: … Alle varsler levert: ja`.
 - **Avslutningskoder:** 0 = OK. 1 = en kilde eller et varsel feilet (det som lyktes, er lagret, og resten prøves neste gang).
   2 = feil i oppsettet, for eksempel manglende secret eller skadet historikkfil (ingenting er gjort).
-- **E-post ved feil:** GitHub sender som standard e-post når en planlagt kjøring feiler, til den som sist endret
-  cron-linjen. Sjekk at **Settings → Notifications → Actions** hos deg varsler om feilede kjøringer.
+- **E-post ved feil:** kjøringene startes med ditt token, så GitHub sender e-post til deg når en kjøring feiler.
+  Sjekk at **Settings → Notifications → Actions** hos deg varsler om feilede kjøringer.
 
 | Melding i loggen                             | Hva du gjør                                                                                                                                                                        |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -339,7 +336,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 ## H. Sjekkliste ende til ende
 
-- [ ] `pytest` er grønt lokalt (73 tester), og **Tester** er grønn under Actions etter første push.
+- [ ] `pytest` er grønt lokalt (71 tester), og **Tester** er grønn under Actions etter første push.
 - [ ] Repoet er **Private**, og `.env` finnes ikke på GitHub.
 - [ ] Minst én secret finnes: `DISCORD_WEBHOOK_URL` og/eller `NTFY_TOPIC`.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.

@@ -1,6 +1,6 @@
 """Daglig sjekk av ledige stillinger ved Høgskolen i Østfold.
 
-    python src/main.py                      vanlig kjøring: hent, varsle, lagre, send daglig statusmelding
+    python src/main.py                      vanlig kjøring: hent, varsle, lagre
     python src/main.py --dry-run            vis hva som ville skjedd; sender og lagrer ingenting
     python src/main.py --test-notification  send en testmelding til Discord og ntfy
 
@@ -143,31 +143,6 @@ def deliver_channel(history: storage.History, channel, save) -> bool:
     return all_delivered
 
 
-def send_status(state_path: Path, notifiers: list, ok: bool, env=os.environ) -> None:
-    """Kort statusmelding etter hver kjøring: «alt OK» eller «noe feilet».
-
-    Kommer det ingen statusmelding etter kl. 12:07 eller 14:07, har sjekken ikke kjørt.
-    """
-    if ok:
-        job_count = len(storage.load(state_path).jobs)
-        text = (f"Sjekken er ferdig og alt virker. Følger med på {job_count} stillinger; nye varsles i egne meldinger.\n"
-                "Kommer det ingen statusmelding etter neste sjekk (kl. 12:07 og 14:07), har den ikke kjørt.")
-    else:
-        text = ("Noe feilet i siste sjekk: en kilde svarte ikke, eller et varsel ble ikke levert. "
-                "Det prøves igjen ved neste kjøring.")
-    if env.get("GITHUB_RUN_ID"):  # satt automatisk i GitHub Actions
-        text += f"\nLogg: {env['GITHUB_SERVER_URL']}/{env['GITHUB_REPOSITORY']}/actions/runs/{env['GITHUB_RUN_ID']}"
-
-    for channel in notifiers:
-        try:
-            channel.send_status(text, ok)
-        except Exception as exc:
-            # Bevisst ikke log.exception: sporingen kan inneholde webhook-URL-en.
-            log.error("%s: statusmeldingen feilet (%s).", channel.name, describe_error(exc))  # NOSONAR
-        else:
-            log.info("%s: statusmelding sendt.", channel.name)
-
-
 def send_test_notification(notifiers: list) -> int:
     """Sender en tydelig merket testmelding. Historikken leses og endres ikke."""
     record = {
@@ -206,10 +181,7 @@ def main(argv: list[str] | None = None) -> int:
         notifiers = [] if args.dry_run else build_notifiers(os.environ, session)
         if args.test_notification:
             return send_test_notification(notifiers)
-        exit_code = check_jobs(STATE_PATH, session, notifiers, dry_run=args.dry_run)
-        if not args.dry_run:
-            send_status(STATE_PATH, notifiers, ok=exit_code == 0)
-        return exit_code
+        return check_jobs(STATE_PATH, session, notifiers, dry_run=args.dry_run)
     except (notifier.ConfigError, storage.StorageError) as exc:
         # Forventede feil med egen, tydelig melding; sporingen trengs ikke.
         log.error("%s", exc)  # NOSONAR
