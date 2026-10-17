@@ -304,15 +304,15 @@ def test_full_cli_run_first_registers_then_notifies(cli, session):
     assert sum("Tittel: Rektor" in message for message in discord_messages) == 1
 
 
-def test_ok_status_is_sent_once_per_day(cli, session):
+def test_ok_status_is_sent_after_every_run(cli, session):
     for _ in range(2):
         assert main.main([]) == 0
 
-    [discord] = session.calls_to(DISCORD_URL)
-    [ntfy] = session.calls_to(notifier.NTFY_SERVER)
-    assert "Alt virker som normalt" in discord["json"]["content"]
-    assert ntfy["json"]["priority"] == 2  # stille varsel på mobilen
-    assert storage.load(cli).initialized  # statusdatoen ødelegger ikke historikken
+    discord_calls = session.calls_to(DISCORD_URL)
+    ntfy_calls = session.calls_to(notifier.NTFY_SERVER)
+    assert len(discord_calls) == len(ntfy_calls) == 2
+    assert all("alt virker" in call["json"]["content"] for call in discord_calls)
+    assert all(call["json"]["priority"] == 2 for call in ntfy_calls)  # stille varsel på mobilen
 
 
 def test_problem_status_is_sent_on_every_failed_run(cli, session):

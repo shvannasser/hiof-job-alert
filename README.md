@@ -1,6 +1,6 @@
 # hiof-job-alert – stillingsvarsler for Høgskolen i Østfold
 
-Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:07 og 14:07 norsk tid med GitHub Actions og
+Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:07 og 14:07 norsk tid med GitHub Actions (startet av cron-job.org) og
 sender nye stillinger til en Discord-kanal og til mobilen via ntfy. Ingen server, database eller betalte tjenester.
 
 Slik ser et varsel ut (generert fra ekte data 12.10.2026):
@@ -46,7 +46,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 | Krav                                               | Løsning                                                                                                         |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Kjøre hver dag kl. 12:07 og 14:07 norsk tid        | GitHub Actions `schedule` med `timezone: "Europe/Oslo"` (sommer-/vintertid håndteres av GitHub)                 |
+| Kjøre hver dag kl. 12:07 og 14:07 norsk tid        | cron-job.org starter arbeidsflyten via GitHubs API (tidssone Europe/Oslo). GitHubs egen `schedule` er reserve   |
 | Manuell kjøring                                    | `workflow_dispatch`, med valgfri testmelding                                                                    |
 | Varsle Discord og mobil                            | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå)                                                |
 | Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt»                   |
@@ -59,7 +59,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 | Timeout og begrensede retries                      | 20 s timeout, maks 3 forsøk med 5 s og 10 s ventetid, respekterer `Retry-After` (maks 60 s)                     |
 | Feilhåndtering per kanal                           | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy                                             |
 | Prøve på nytt                                      | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer                                           |
-| Daglig statusmelding                               | «Alt virker» én gang per dag (stille på mobilen), «Noe feilet» ved hver feilet kjøring                          |
+| Statusmelding                                      | Etter hver kjøring: «Alt virker» (stille på mobilen) eller «Noe feilet» (med lyd)                               |
 | Logging uten hemmeligheter                         | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk             |
 | Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten                               |
 
@@ -67,7 +67,8 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 - Jobbnorge oppgir ikke klokkeslett, så Jobbnorge-varsler viser «klokkeslett ikke oppgitt».
 - En annonse som legges ut **og** fjernes mellom to kjøringer (innen to timer, eller over natten), oppdages ikke.
-- GitHub kan forsinke planlagte kjøringer ved høy belastning. 12:07 og 14:07 er ikke minuttnøyaktig.
+- GitHubs egen tidsplan (`schedule`) startet aldri en eneste kjøring i dette repoet (testet 15.–17.10.2026), også uten `timezone`.
+  Derfor starter cron-job.org kjøringene (F5). Tokenet der utløper og må fornyes.
 - Jobbnorge-API-et og HTML-strukturen kan endres uten varsel. Da feiler kjøringen med en tydelig melding, og de andre kildene brukes fortsatt.
 - Studentstillinger har ingen stillings-ID og identifiseres med URL. Flytter HiØ en slik side, varsles den som ny.
 - ntfy-emnet er bare beskyttet ved at navnet er hemmelig.
@@ -138,17 +139,16 @@ Hver annonse i `data/seen_jobs.json` ser slik ut:
 
 **`.github/workflows/daily-check.yml`**
 
-- **Tidsplan:** `cron: "7 12,14 * * *"` med `timezone: "Europe/Oslo"`. GitHub støtter tidssone i `on.schedule` (bekreftet i GitHubs
-  dokumentasjon), og justerer selv for sommer- og vintertid. Uten tidssonestøtte måtte man brukt
-  forskjellige UTC-tider om sommeren og vinteren.
-- **Forsinkelser:** GitHub kan forsinke planlagte kjøringer. En forsinket eller utelatt kjøring tas igjen ved neste kjøring, fordi
+- **Tidsplan:** cron-job.org kaller `workflow_dispatch` kl. 12:07 og 14:07 norsk tid (F5). `schedule` med
+  `cron: "7 12,14 * * *"` og `timezone: "Europe/Oslo"` står igjen som reserve, men GitHub har ikke startet den hittil.
+  Starter begge samme dag, går ingenting galt: `concurrency` kjører dem etter hverandre, og historikken hindrer dobbeltvarsler.
+- **Forsinkelser:** Planlagte kjøringer kan bli forsinket eller utelatt. En forsinket eller utelatt kjøring tas igjen ved neste kjøring, fordi
   appen sammenligner mot historikken og ikke mot tidspunkt.
 - **Manuell kjøring:** `workflow_dispatch` med avkrysningsboksen «Send bare en testmelding».
 - **Rettigheter:** bare `contents: write`, som trengs for å pushe historikken. Tokenet gjelder bare dette repoet og utløper når jobben er ferdig.
 - **Samtidighet:** `concurrency` sørger for at bare én kjøring skriver historikken om gangen.
 - **Lagring:** committer `data/seen_jobs.json` bare når den er endret (gjør `git pull --rebase` og prøver opptil tre ganger).
-  Datoen for siste «alt OK»-statusmelding lagres der også, så det blir normalt én commit per dag.
-- **Planlagte kjøringer bruker koden på standardgrenen** (`main`).
+- **Kjøringene bruker koden på standardgrenen** (`main`).
 
 **`.github/workflows/tests.yml`** kjører alle testene ved hver push og pull request, med bare lesetilgang.
 Commits som arbeidsflyten selv lager med `GITHUB_TOKEN`, starter ikke nye kjøringer.
@@ -186,7 +186,7 @@ python3 -m venv .venv
 | Feil fra nettsiden                   | `test_website_errors_leave_history_untouched`, `test_403_from_website_is_reported_without_hammering`, `test_other_sources_are_used_when_one_fails`, retry-testene i `test_scraper.py`                                                    |
 | Feil fra Discord                     | `test_discord_failure_does_not_affect_ntfy_and_is_retried_next_run`, `test_unavailable_channel_is_paused_for_the_rest_of_the_run`, `test_rejected_message_does_not_block_the_next_one`                                                   |
 | Feil fra ntfy                        | `test_ntfy_failure_does_not_affect_discord_and_is_retried_next_run`                                                                                                                                                                      |
-| Daglig statusmelding                 | `test_ok_status_is_sent_once_per_day`, `test_problem_status_is_sent_on_every_failed_run`                                                                                                                             |
+| Statusmelding                        | `test_ok_status_is_sent_after_every_run`, `test_problem_status_is_sent_on_every_failed_run`                                                                                                                             |
 | Vedvarende lagring                   | `test_storage.py`: roundtrip, atomisk skriving, skadet fil overskrives aldri, den medfølgende `data/seen_jobs.json` er gyldig                                                                                                            |
 | Trygg oppdatering av varslingsstatus | `test_crash_mid_run_keeps_sent_status_and_avoids_duplicates`, `test_notification_status_is_tracked_separately_per_channel`, `test_gives_up_after_max_attempts`, `test_secrets_never_reach_logs_or_history`                               |
 
@@ -247,6 +247,24 @@ I repoet på GitHub: **Settings → Secrets and variables → Actions → New re
 
 Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. Tokenet for å lagre historikken (`GITHUB_TOKEN`) lager GitHub automatisk.
 
+### F5. Daglig start med cron-job.org
+
+GitHubs egen tidsplan startet aldri arbeidsflyten i dette repoet, så en gratis ekstern tjeneste starter den i stedet.
+
+1. **Token:** github.com → profilbildet → **Settings → Developer settings → Personal access tokens → Fine-grained tokens →
+   Generate new token**. Velg *Only select repositories* → `hiof-job-alert`, og **Repository permissions → Actions: Read and write**.
+   Ingenting annet. Velg en utløpsdato og sett en påminnelse om å fornye tokenet. Kopier tokenet (`github_pat_…`); det vises bare én gang.
+2. **Cron-jobb:** lag en gratis konto på [cron-job.org](https://cron-job.org) → **Create cronjob**:
+   - URL: `https://api.github.com/repos/<brukernavn>/hiof-job-alert/actions/workflows/daily-check.yml/dispatches`
+   - Tidsplan: **Custom** → `7 12,14 * * *`, tidssone **Europe/Oslo**
+   - **Advanced:** metode `POST`, body `{"ref":"main"}`, headere `Authorization: Bearer github_pat_…` og
+     `Accept: application/vnd.github+json`. La «Requires HTTP authentication» og «Treat redirects … as success» være av.
+   - **Notifications:** slå på e-post når jobben feiler (f.eks. når tokenet har utløpt).
+3. **Sjekk:** etter første kjøring skal jobbhistorikken vise **204 No Content**, og under Actions skal det finnes en ny kjøring.
+   401 betyr feil eller utløpt token; 404 betyr feil URL eller at tokenet mangler *Actions*-tilgang.
+
+Tokenet lagres hos cron-job.org. Lekker det, kan det bare starte og stoppe kjøringer i dette repoet, ikke lese secrets eller endre kode.
+
 ---
 
 ## G. Første kjøring, manuell testing og logger
@@ -286,9 +304,9 @@ Mangler en av dem, brukes bare den andre kanalen. Ingen andre secrets trengs. To
 
 ### G4. Logger og feilsøking
 
-- **Daglig statusmelding:** etter første vellykkede kjøring hver dag kommer «✅ Alt virker som normalt» i Discord og
-  som stille varsel på mobilen. Feiler en kjøring, kommer «⚠️ Noe feilet» (med lyd) hver gang, med lenke til loggen.
-  **Kommer ingen statusmelding en dag, har sjekken ikke kjørt.** Se da under Actions.
+- **Statusmelding:** etter hver kjøring kommer «✅ … alt virker» i Discord og som stille varsel på mobilen. Feiler en
+  kjøring, kommer «⚠️ Noe feilet» (med lyd), med lenke til loggen.
+  **Kommer ingen statusmelding etter kl. 12:07 eller 14:07, har sjekken ikke kjørt.** Se da historikken i cron-job.org og under Actions.
 - **Logger:** Actions → velg kjøring → **check** → klikk på et steg. Viktige linjer: `Ny stilling: …`,
   `discord: varslet om …`, `ntfy: varslet om …` og oppsummeringen `Ferdig: … Alle varsler levert: ja`.
 - **Avslutningskoder:** 0 = OK. 1 = en kilde eller et varsel feilet (det som lyktes, er lagret, og resten prøves neste gang).
@@ -327,8 +345,8 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
 - [ ] G3: den «nye» stillingen ble varslet i begge kanaler, og en ny kjøring varslet ikke på nytt.
-- [ ] Dagen etter: under Actions finnes en kjøring med hendelsen **schedule**, rundt kl. 12:07 og 14:07 eller litt senere.
-- [ ] Du får e-post fra GitHub når en kjøring feiler (G4).
+- [ ] F5: historikken i cron-job.org viser **204**, og under Actions finnes kjøringer med hendelsen **workflow_dispatch** rundt kl. 12:07 og 14:07.
+- [ ] Du får e-post fra GitHub når en kjøring feiler (G4), og fra cron-job.org når kallet feiler (F5).
 
 ---
 
