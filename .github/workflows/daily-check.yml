@@ -6,6 +6,10 @@ on:
     # GitHub kan forsinke planlagte kjøringer ved høy belastning, så tidspunktet er ikke minuttnøyaktig.
     - cron: "7 12,14 * * *"
       timezone: "Europe/Oslo"
+    # MIDLERTIDIG TEST 17.10: 13:45 med timezone og 13:50 uten (11:50 UTC = 13:50 norsk sommertid). Fjernes etter testen.
+    - cron: "45 13 * * *"
+      timezone: "Europe/Oslo"
+    - cron: "50 11 * * *"
   workflow_dispatch:
     inputs:
       test_notification:
