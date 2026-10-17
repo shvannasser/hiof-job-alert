@@ -1,6 +1,6 @@
 # hiof-job-alert – stillingsvarsler for Høgskolen i Østfold
 
-Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 12:07 og 14:07 norsk tid med GitHub Actions (startet av cron-job.org) og
+Sjekker [hiof.no/om/jobb](https://www.hiof.no/om/jobb/) hver dag kl. 10:00 norsk tid med GitHub Actions (startet av cron-job.org) og
 sender nye stillinger til en Discord-kanal og til mobilen via ntfy. Ingen server, database eller betalte tjenester.
 
 Slik ser et varsel ut (generert fra ekte data 12.10.2026):
@@ -46,7 +46,7 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 
 | Krav                                               | Løsning                                                                                                         |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Kjøre hver dag kl. 12:07 og 14:07 norsk tid        | cron-job.org starter arbeidsflyten via GitHubs API (tidssone Europe/Oslo). GitHubs egen `schedule` er reserve   |
+| Kjøre hver dag kl. 10:00 norsk tid                 | cron-job.org starter arbeidsflyten via GitHubs API (tidssone Europe/Oslo, håndterer sommer-/vintertid)          |
 | Manuell kjøring                                    | `workflow_dispatch`, med valgfri testmelding                                                                    |
 | Varsle Discord og mobil                            | Discord Incoming Webhook og ntfy (JSON-publisering, støtter æøå)                                                |
 | Hente tittel, URL, ID, dato, klokkeslett, avdeling | Se tabellen i del A. Felter kilden ikke oppgir, lagres som `null` og vises som «ikke oppgitt»                   |
@@ -65,8 +65,9 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 ### Begrensninger
 
 - Jobbnorge oppgir ikke klokkeslett, så Jobbnorge-varsler viser «klokkeslett ikke oppgitt».
-- En annonse som legges ut **og** fjernes mellom to kjøringer (innen to timer, eller over natten), oppdages ikke.
-- GitHubs egen tidsplan (`schedule`) startet aldri en eneste kjøring i dette repoet (testet 15.–17.10.2026), også uten `timezone`.
+- En annonse som legges ut **og** fjernes mellom to kjøringer (innen ett døgn), oppdages ikke.
+- GitHubs egen tidsplan (`schedule`) startet aldri en eneste kjøring i dette repoet (testet 15.–17.10.2026), også uten `timezone`,
+  så den er fjernet.
   Derfor starter cron-job.org kjøringene (F5). Tokenet der utløper og må fornyes.
 - Jobbnorge-API-et og HTML-strukturen kan endres uten varsel. Da feiler kjøringen med en tydelig melding, og de andre kildene brukes fortsatt.
 - Studentstillinger har ingen stillings-ID og identifiseres med URL. Flytter HiØ en slik side, varsles den som ny.
@@ -90,7 +91,7 @@ et svar går tapt etter at meldingen faktisk ble levert, eller hvis `git push` a
 ```text
 hiof-job-alert/
 ├── .github/workflows/
-│   ├── daily-check.yml     Kjøring kl. 12:07 og 14:07 + manuell kjøring, lagrer historikken
+│   ├── daily-check.yml     Selve sjekken, startet av cron-job.org kl. 10:00 eller manuelt; lagrer historikken
 │   └── tests.yml           Kjører testene ved hver push
 ├── src/
 │   ├── main.py             Styrer kjøringen: hent → sammenlign → lagre → varsle → lagre
@@ -138,10 +139,9 @@ Hver annonse i `data/seen_jobs.json` ser slik ut:
 
 **`.github/workflows/daily-check.yml`**
 
-- **Tidsplan:** cron-job.org kaller `workflow_dispatch` kl. 12:07 og 14:07 norsk tid (F5). `schedule` med
-  `cron: "7 12,14 * * *"` og `timezone: "Europe/Oslo"` står igjen som reserve, men GitHub har ikke startet den hittil.
-  Starter begge samme dag, går ingenting galt: `concurrency` kjører dem etter hverandre, og historikken hindrer dobbeltvarsler.
-- **Forsinkelser:** Planlagte kjøringer kan bli forsinket eller utelatt. En forsinket eller utelatt kjøring tas igjen ved neste kjøring, fordi
+- **Tidsplan:** arbeidsflyten har bare `workflow_dispatch`. cron-job.org kaller den hver dag kl. 10:00 norsk tid (F5).
+  Tidspunktet endres derfor i cron-job.org, ikke i denne filen.
+- **Utelatte kjøringer:** en kjøring som ikke blir startet, tas igjen ved neste kjøring, fordi
   appen sammenligner mot historikken og ikke mot tidspunkt.
 - **Manuell kjøring:** `workflow_dispatch` med avkrysningsboksen «Send bare en testmelding».
 - **Rettigheter:** bare `contents: write`, som trengs for å pushe historikken. Tokenet gjelder bare dette repoet og utløper når jobben er ferdig.
@@ -254,7 +254,7 @@ GitHubs egen tidsplan startet aldri arbeidsflyten i dette repoet, så en gratis 
    Ingenting annet. Velg en utløpsdato og sett en påminnelse om å fornye tokenet. Kopier tokenet (`github_pat_…`); det vises bare én gang.
 2. **Cron-jobb:** lag en gratis konto på [cron-job.org](https://cron-job.org) → **Create cronjob**:
    - URL: `https://api.github.com/repos/<brukernavn>/hiof-job-alert/actions/workflows/daily-check.yml/dispatches`
-   - Tidsplan: **Custom** → `7 12,14 * * *`, tidssone **Europe/Oslo**
+   - Tidsplan: **Every day at 10:00**, tidssone **Europe/Oslo**
    - **Advanced:** metode `POST`, body `{"ref":"main"}`, headere `Authorization: Bearer github_pat_…` og
      `Accept: application/vnd.github+json`. La «Requires HTTP authentication» og «Treat redirects … as success» være av.
    - **Notifications:** slå på e-post når jobben feiler (f.eks. når tokenet har utløpt).
@@ -342,7 +342,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
 - [ ] G3: den «nye» stillingen ble varslet i begge kanaler, og en ny kjøring varslet ikke på nytt.
-- [ ] F5: historikken i cron-job.org viser **204**, og under Actions finnes kjøringer med hendelsen **workflow_dispatch** rundt kl. 12:07 og 14:07.
+- [ ] F5: historikken i cron-job.org viser **204**, og under Actions finnes kjøringer med hendelsen **workflow_dispatch** rundt kl. 10:00.
 - [ ] Du får e-post fra GitHub når en kjøring feiler (G4), og fra cron-job.org når kallet feiler (F5).
 
 ---

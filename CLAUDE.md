@@ -6,7 +6,7 @@ Build a complete, minimal, reliable job-alert application that monitors the Høg
 
 https://www.hiof.no/om/jobb/
 
-The application must check the page every day at about 12:07 and 14:07 Norwegian local time (not on the full hour, where GitHub often drops scheduled runs) and notify me when a new job listing is discovered.
+The application must check the page every day at 10:00 Norwegian local time and notify me when a new job listing is discovered.
 
 Notifications must be sent to:
 
@@ -177,7 +177,7 @@ Use GitHub Actions for automated execution.
 
 Requirements:
 
-- Run daily at 12:07 and 14:07 in the `Europe/Oslo` time zone.
+- Run daily at 10:00 in the `Europe/Oslo` time zone (triggered by cron-job.org; the workflow has no `schedule`).
 - Account for daylight-saving time.
 - Prefer native time-zone-aware scheduling if supported by the selected GitHub Actions configuration.
 - Do not silently use a fixed UTC schedule that shifts by an hour during part of the year.
