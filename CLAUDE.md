@@ -155,7 +155,7 @@ GitHub Actions runs in temporary environments. Changes to local files do not aut
 
 Choose the simplest safe persistent-storage solution.
 
-Preferred option: a version-controlled JSON state file in a private GitHub repository, provided updates can be implemented safely.
+Preferred option: a version-controlled JSON state file in the GitHub repository (the repo is public; the state holds only public listings), provided updates can be implemented safely.
 
 Requirements:
 
@@ -179,7 +179,7 @@ Requirements:
 
 - Run daily at 10:00 in the `Europe/Oslo` time zone (triggered by cron-job.org; the workflow has no `schedule`).
 - Account for daylight-saving time.
-- Prefer native time-zone-aware scheduling if supported by the selected GitHub Actions configuration.
+- The cron-job.org job uses the `Europe/Oslo` time zone, so daylight-saving time is handled there.
 - Do not silently use a fixed UTC schedule that shifts by an hour during part of the year.
 - Include `workflow_dispatch` for manual execution.
 - Use the minimum permissions required.

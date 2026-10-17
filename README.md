@@ -60,15 +60,14 @@ Ingen tilgangskontroller omgås: appen identifiserer seg ærlig som `hiof-job-al
 | Feilhåndtering per kanal                           | Status `pending`/`sent`/`failed` spores separat for Discord og ntfy                                             |
 | Prøve på nytt                                      | Mislykkede varsler prøves igjen ved hver kjøring, opptil 10 kjøringer                                           |
 | Logging uten hemmeligheter                         | Feil logges som «HTTP 500 etter 3 forsøk» eller «ConnectionError», aldri med URL. Testet automatisk             |
-| Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til (det private) repoet av arbeidsflyten                               |
+| Vedvarende lagring                                 | `data/seen_jobs.json` committes tilbake til repoet av arbeidsflyten                                             |
 
 ### Begrensninger
 
 - Jobbnorge oppgir ikke klokkeslett, så Jobbnorge-varsler viser «klokkeslett ikke oppgitt».
 - En annonse som legges ut **og** fjernes mellom to kjøringer (innen ett døgn), oppdages ikke.
-- GitHubs egen tidsplan (`schedule`) startet aldri en eneste kjøring i dette repoet (testet 15.–17.10.2026), også uten `timezone`,
-  så den er fjernet.
-  Derfor starter cron-job.org kjøringene (F5). Tokenet der utløper og må fornyes.
+- GitHubs egen tidsplan (`schedule`) startet aldri en eneste kjøring i dette repoet (testet 15.–17.10.2026, også uten `timezone`),
+  så den er fjernet. Derfor starter cron-job.org kjøringene (F5). Tokenet der utløper og må fornyes.
 - Jobbnorge-API-et og HTML-strukturen kan endres uten varsel. Da feiler kjøringen med en tydelig melding, og de andre kildene brukes fortsatt.
 - Studentstillinger har ingen stillings-ID og identifiseres med URL. Flytter HiØ en slik side, varsles den som ny.
 - ntfy-emnet er bare beskyttet ved at navnet er hemmelig.
@@ -217,7 +216,7 @@ python3 -m venv .venv
 ### F3. GitHub-repository
 
 1. Logg inn på github.com → **+** øverst til høyre → **New repository**.
-2. Navn: `hiof-job-alert`. Velg **Private**. Ikke kryss av for README, .gitignore eller lisens. Trykk **Create repository**.
+2. Navn: `hiof-job-alert`. **Private** eller **Public** virker begge; historikken inneholder bare offentlige stillingsannonser. Ikke kryss av for README, .gitignore eller lisens. Trykk **Create repository**.
 3. Last opp prosjektet fra denne mappen (PowerShell). Git-repoet er allerede initialisert lokalt med grenen `main`,
    men ingenting er committet:
 
@@ -337,7 +336,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 ## H. Sjekkliste ende til ende
 
 - [ ] `pytest` er grønt lokalt (71 tester), og **Tester** er grønn under Actions etter første push.
-- [ ] Repoet er **Private**, og `.env` finnes ikke på GitHub.
+- [ ] `.env` finnes ikke på GitHub, og ingen token eller webhook-URL står i repoet.
 - [ ] Minst én secret finnes: `DISCORD_WEBHOOK_URL` og/eller `NTFY_TOPIC`.
 - [ ] G1: testmeldingen kom fram i Discord **og** på mobilen.
 - [ ] G2: første kjøring er grønn, loggen viser alle tre kildene uten `403`, og `github-actions[bot]` har committet historikken.
@@ -351,12 +350,13 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 
 | Tjeneste                                  | Gratis kvote / grense                                           | Forventet bruk                                                                                              |
 | ----------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring                 | ca. 1 minutt per kjøring, rundt 60–90 minutter i måneden inkludert testkjøringer                            |
-| GitHub Actions, offentlig repo            | Gratis med standard runnere                                     | Frarådes: historikken blir offentlig, og planlagte kjøringer slås av etter 60 dager uten aktivitet i repoet |
+| GitHub Actions, privat repo (GitHub Free) | 2000 minutter per måned, 500 MB artefaktlagring                 | under 1 minutt per kjøring, rundt 30 minutter i måneden inkludert testkjøringer                             |
+| GitHub Actions, offentlig repo            | Gratis med standard runnere                                     | Ingen grense å bekymre seg for                                                                              |
 | Når kvoten er brukt opp                   | Uten betalingsmåte blokkeres videre bruk; du blir ikke belastet | Ikke aktuelt med dette forbruket                                                                            |
 | ntfy.sh (uten konto)                      | 250 meldinger per døgn, 4096 byte per melding                   | Noen få meldinger i uken                                                                                    |
+| cron-job.org                              | Gratis konto                                                    | Ett kall per døgn                                                                                           |
 | Discord-webhook                           | Gratis, med fartsgrense per webhook                             | Appen venter automatisk ved HTTP 429                                                                        |
-| HiØ og Jobbnorge                          | Offentlige sider og API                                         | Seks GET-forespørsler per døgn                                                                              |
+| HiØ og Jobbnorge                          | Offentlige sider og API                                         | Tre GET-forespørsler per døgn                                                                               |
 | Lagring i repoet                          | Historikken vokser noen hundre byte per stilling                | Godt under 1 MB per år                                                                                      |
 
 **Forventet driftskostnad: 0 kr.**
@@ -364,6 +364,7 @@ Kjør `git checkout -- data/seen_jobs.json` før du pusher kodeendringer.
 ## Vedlikehold
 
 - Ingen fast vedlikehold. Går noe galt, feiler kjøringen, og du får e-post.
+- **Forny GitHub-tokenet i cron-job.org før det utløper** (F5). Ellers stopper de daglige kjøringene, og cron-job.org sender e-post om 401.
 - Arbeidsflyten committer historikken til GitHub. Kjør derfor `git pull --rebase` før du pusher egne kodeendringer.
 - Oppdater gjerne versjonene i `requirements.txt` og `actions/*@v7` en gang i året, og kjør testene etterpå.
 - `MAX_ATTEMPTS` i `src/storage.py` styrer hvor mange kjøringer et mislykket varsel prøves (standard 10). Gitt opp-varsler
