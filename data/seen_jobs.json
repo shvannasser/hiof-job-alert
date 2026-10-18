@@ -1,5 +1,106 @@
 {
   "schema_version": 1,
   "initialized_at": "2026-10-15T09:03:28+00:00",
-  "jobs": {}
+  "jobs": {
+    "jobbnorge:307733": {
+      "title": "Rådgiver/seniorrådgiver til Seksjon for utdanningskvalitet (midlertidig)",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/307733",
+      "source": "jobbnorge",
+      "published_date": "2026-10-16",
+      "published_time": null,
+      "department": "Administrasjonen, Halden",
+      "deadline": "01.11.2026",
+      "first_seen_at": "2026-10-18T08:00:57+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:57+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        }
+      }
+    },
+    "jobbnorge:307772": {
+      "title": "Ledig stilling som kommunikasjonssjef",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/307772",
+      "source": "jobbnorge",
+      "published_date": "2026-09-18",
+      "published_time": null,
+      "department": "Organisasjonsavdelingen, Halden",
+      "deadline": "18.10.2026",
+      "first_seen_at": "2026-10-18T08:00:57+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:57+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        }
+      }
+    },
+    "https://www.hiof.no/om/jobb/jobber-for-studenter/medlemmer-til-fadderstyret": {
+      "title": "Bli med i Fadderstyret 2027",
+      "url": "https://www.hiof.no/om/jobb/jobber-for-studenter/medlemmer-til-fadderstyret",
+      "source": "hiof-studentstillinger",
+      "published_date": "2026-10-06",
+      "published_time": "11:29",
+      "department": null,
+      "deadline": null,
+      "first_seen_at": "2026-10-18T08:00:57+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        }
+      }
+    },
+    "https://www.hiof.no/om/jobb/jobber-for-studenter/vil-du-bli-studentambassador.html": {
+      "title": "Vil du bli studentambassadør?",
+      "url": "https://www.hiof.no/om/jobb/jobber-for-studenter/vil-du-bli-studentambassador.html",
+      "source": "hiof-studentstillinger",
+      "published_date": "2025-08-14",
+      "published_time": "10:05",
+      "department": null,
+      "deadline": null,
+      "first_seen_at": "2026-10-18T08:00:57+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-18T08:00:58+00:00",
+          "error": null
+        }
+      }
+    }
+  }
 }
