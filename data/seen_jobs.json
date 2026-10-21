@@ -101,6 +101,31 @@
           "error": null
         }
       }
+    },
+    "jobbnorge:309422": {
+      "title": "Høgskolelektor innen regnskap og bedriftsøkonomi",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/309422",
+      "source": "jobbnorge",
+      "published_date": "2026-10-20",
+      "published_time": null,
+      "department": "Institutt for økonomi, innovasjon og samfunn (ØIS), Halden",
+      "deadline": "10.11.2026",
+      "first_seen_at": "2026-10-21T08:00:57+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-21T08:00:58+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-21T08:00:58+00:00",
+          "error": null
+        }
+      }
     }
   }
 }
