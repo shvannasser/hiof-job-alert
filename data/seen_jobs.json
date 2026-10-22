@@ -126,6 +126,31 @@
           "error": null
         }
       }
+    },
+    "jobbnorge:308129": {
+      "title": "Programleder Barnehagelærerutdanning",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/308129",
+      "source": "jobbnorge",
+      "published_date": "2026-10-21",
+      "published_time": null,
+      "department": "Fakultet for lærerutdanninger og språk (LUSP), Halden",
+      "deadline": "15.11.2026",
+      "first_seen_at": "2026-10-22T08:00:56+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-22T08:00:57+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-22T08:00:57+00:00",
+          "error": null
+        }
+      }
     }
   }
 }
