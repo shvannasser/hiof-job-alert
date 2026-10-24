@@ -151,6 +151,56 @@
           "error": null
         }
       }
+    },
+    "jobbnorge:307942": {
+      "title": "Ass. instituttleder på institutt for informasjonsteknologi og kommunikasjon - 3 årig vikariat",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/307942",
+      "source": "jobbnorge",
+      "published_date": "2026-10-23",
+      "published_time": null,
+      "department": "Institutt for informasjonsteknologi og kommunikasjon (ITK), Halden",
+      "deadline": "30.11.2026",
+      "first_seen_at": "2026-10-24T08:01:02+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-24T08:01:04+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-24T08:01:04+00:00",
+          "error": null
+        }
+      }
+    },
+    "jobbnorge:307943": {
+      "title": "Avdelingsingeniør/overingeniør innenfor generativ og agentisk KI",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/307943",
+      "source": "jobbnorge",
+      "published_date": "2026-10-23",
+      "published_time": null,
+      "department": "Institutt for informasjonsteknologi og kommunikasjon (ITK), Halden",
+      "deadline": "30.11.2026",
+      "first_seen_at": "2026-10-24T08:01:02+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-24T08:01:04+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-10-24T08:01:04+00:00",
+          "error": null
+        }
+      }
     }
   }
 }
