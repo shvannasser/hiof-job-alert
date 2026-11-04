@@ -201,6 +201,31 @@
           "error": null
         }
       }
+    },
+    "jobbnorge:310658": {
+      "title": "Vil du være UX-designeren som forbedrer våre digitale tjenester?",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/310658",
+      "source": "jobbnorge",
+      "published_date": "2026-11-03",
+      "published_time": null,
+      "department": "Digitaliseringsavdelingen, Halden",
+      "deadline": "24.11.2026",
+      "first_seen_at": "2026-11-04T09:01:10+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-11-04T09:01:10+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-11-04T09:01:11+00:00",
+          "error": null
+        }
+      }
     }
   }
 }
