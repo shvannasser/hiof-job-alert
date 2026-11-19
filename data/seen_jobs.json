@@ -226,6 +226,31 @@
           "error": null
         }
       }
+    },
+    "jobbnorge:311850": {
+      "title": "Høgskolelektor i spesialpedagogikk",
+      "url": "https://www.jobbnorge.no/ledige-stillinger/stilling/311850",
+      "source": "jobbnorge",
+      "published_date": "2026-11-18",
+      "published_time": null,
+      "department": "Institutt for pedagogikk, IKT og læring (PIL), Halden",
+      "deadline": "06.12.2026",
+      "first_seen_at": "2026-11-19T09:01:13+00:00",
+      "baseline": false,
+      "notifications": {
+        "discord": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-11-19T09:01:14+00:00",
+          "error": null
+        },
+        "ntfy": {
+          "status": "sent",
+          "attempts": 1,
+          "updated_at": "2026-11-19T09:01:14+00:00",
+          "error": null
+        }
+      }
     }
   }
 }
